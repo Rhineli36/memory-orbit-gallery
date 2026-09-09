@@ -288,7 +288,7 @@ export default function Gallery() {
               <div className="lightbox-toolbar">
                 <button className="back-to-sphere" onClick={closePhoto}><ArrowLeft size={18} /> 返回球面</button>
                 <label className="details-toggle">
-                  <span>文字栏</span>
+                  <span>{detailsVisible ? '隐藏文字' : '显示文字'}</span>
                   <Switch checked={detailsVisible} onCheckedChange={setDetailsVisible} aria-label="显示或隐藏文字栏" />
                 </label>
               </div>
