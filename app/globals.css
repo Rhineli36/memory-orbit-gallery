@@ -45,6 +45,9 @@ button { color: inherit; }
 .brand strong { font-family: Georgia, "Songti SC", serif; font-size: 17px; letter-spacing: .12em; font-weight: 500; }
 .brand small { margin-top: 3px; font-size: 9px; letter-spacing: .27em; color: #746d81; }
 .header-actions { display: flex; gap: 10px; }
+.layout-switch { display: flex; align-items: center; padding: 3px; border: 1px solid rgb(255 255 255 / 10%); border-radius: 99px; background: rgb(15 13 24 / 62%); backdrop-filter: blur(15px); }
+.layout-switch button { display: flex; align-items: center; gap: 5px; height: 32px; padding: 0 11px; border: 0; border-radius: 99px; color: #777080; background: transparent; font-size: 12px; cursor: pointer; transition: .2s ease; }
+.layout-switch button.active { color: #e8dcf8; background: rgb(130 84 194 / 30%); box-shadow: inset 0 0 0 1px rgb(198 162 255 / 16%), 0 0 16px rgb(154 98 229 / 12%); }
 .icon-button, .manage-button, .autoplay-toggle { border: 1px solid rgb(255 255 255 / 10%); background: rgb(15 13 24 / 62%); backdrop-filter: blur(15px); cursor: pointer; transition: .2s ease; }
 .icon-button { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; }
 .manage-button { display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 16px; border-radius: 99px; font-size: 14px; }
@@ -74,9 +77,28 @@ button { color: inherit; }
 .sphere-photo:hover::before, .sphere-photo:focus-visible::before { border-color: rgb(255 255 255 / 68%); box-shadow: inset 0 0 12px rgb(210 173 255 / 42%); }
 .sphere-photo:hover span { opacity: 1; }
 @keyframes photo-glow { from { box-shadow: 0 0 7px rgb(224 196 255 / 70%), 0 0 20px rgb(171 112 255 / 42%), 0 18px 35px rgb(0 0 0 / 48%); } to { box-shadow: 0 0 11px rgb(235 217 255 / 92%), 0 0 34px rgb(171 112 255 / 66%), 0 18px 35px rgb(0 0 0 / 48%); } }
-.sphere-core { position: absolute; z-index: -1; display: grid; place-items: center; width: 86px; height: 86px; border-radius: 50%; border: 1px solid rgb(190 149 255 / 15%); color: #d4b8ff; background: radial-gradient(circle, rgb(158 102 246 / 14%), transparent 70%); box-shadow: 0 0 80px 35px rgb(132 80 211 / 8%); pointer-events: none; }
-.sphere-core span { font-family: Georgia, serif; font-size: 25px; line-height: 1; }
-.sphere-core small { font-size: 7px; letter-spacing: .2em; color: #776a85; }
+::view-transition-group(*) { animation-duration: .58s; animation-timing-function: cubic-bezier(.22,.72,.16,1); }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: .34s; }
+.sphere-core { position: absolute; z-index: -1; display: grid; place-items: center; width: 176px; height: 176px; color: #eadcff; pointer-events: none; filter: drop-shadow(0 0 26px rgb(144 82 245 / 28%)); }
+.nebula { position: absolute; inset: 0; overflow: hidden; border-radius: 50%; border: 1px solid rgb(206 174 255 / 16%); background: radial-gradient(circle at 48% 47%, rgb(255 255 255 / 20%) 0 1%, rgb(153 87 255 / 20%) 7%, rgb(56 26 102 / 20%) 29%, rgb(4 3 10 / 20%) 61%, transparent 72%); box-shadow: inset 0 0 28px rgb(177 113 255 / 16%), 0 0 45px rgb(109 59 207 / 13%); animation: nebula-breathe 4.8s ease-in-out infinite; }
+.nebula::before, .nebula::after { content: ''; position: absolute; border-radius: 50%; }
+.nebula::before { inset: 13px; border: 1px solid rgb(171 131 255 / 18%); border-left-color: rgb(225 208 255 / 55%); border-bottom-color: transparent; animation: cosmic-spin 9s linear infinite; }
+.nebula::after { inset: 31px; border: 1px dashed rgb(134 187 255 / 18%); border-right-color: rgb(154 202 255 / 58%); animation: cosmic-spin 6.5s linear infinite reverse; }
+.nebula-cloud { position: absolute; width: 92px; height: 32px; border-radius: 50%; filter: blur(9px); mix-blend-mode: screen; opacity: .55; }
+.cloud-a { left: 20px; top: 63px; transform: rotate(18deg); background: linear-gradient(90deg, transparent, #913dff, #d099ff, transparent); animation: cloud-drift 7s ease-in-out infinite alternate; }
+.cloud-b { right: 12px; top: 75px; transform: rotate(-35deg); background: linear-gradient(90deg, transparent, #286cda, #8055ff, transparent); animation: cloud-drift 5.5s ease-in-out -2s infinite alternate-reverse; }
+.cloud-c { left: 45px; bottom: 30px; width: 72px; transform: rotate(52deg); background: linear-gradient(90deg, transparent, #e54cbd, #743cff, transparent); animation: cloud-drift 6.5s ease-in-out -1s infinite alternate; }
+.nebula-star { position: absolute; width: 3px; height: 3px; border-radius: 50%; background: #fff; box-shadow: 0 0 6px 2px #caa6ff; animation: star-flicker 2.1s ease-in-out infinite alternate; }
+.star-a { left: 31px; top: 40px; }
+.star-b { right: 27px; top: 82px; width: 2px; height: 2px; animation-delay: -.8s; }
+.star-c { left: 76px; bottom: 24px; width: 2px; height: 2px; animation-delay: -1.4s; }
+.core-count { position: relative; z-index: 2; display: grid; place-items: center; width: 78px; height: 78px; border-radius: 50%; background: radial-gradient(circle, rgb(22 11 40 / 88%), rgb(8 5 14 / 76%) 67%, transparent 70%); box-shadow: 0 0 24px rgb(196 139 255 / 18%); }
+.core-count span { font-family: Georgia, serif; font-size: 28px; line-height: 1; text-shadow: 0 0 16px rgb(211 174 255 / 65%); }
+.core-count small { font-size: 7px; letter-spacing: .23em; color: #907ba9; }
+@keyframes cosmic-spin { to { transform: rotate(360deg); } }
+@keyframes nebula-breathe { 0%,100% { transform: scale(.96); opacity: .72; } 50% { transform: scale(1.04); opacity: 1; } }
+@keyframes cloud-drift { from { translate: -8px -3px; scale: .9; opacity: .35; } to { translate: 8px 5px; scale: 1.15; opacity: .72; } }
+@keyframes star-flicker { from { opacity: .2; scale: .7; } to { opacity: 1; scale: 1.45; } }
 .orbit-ring { position: absolute; width: 78%; aspect-ratio: 1; border: 1px solid rgb(194 159 252 / 7%); border-radius: 50%; pointer-events: none; }
 .orbit-ring-a { transform: rotateX(68deg); }
 .orbit-ring-b { transform: rotateY(72deg); }
@@ -136,6 +158,7 @@ button { color: inherit; }
   .topbar { padding: 16px; }
   .manage-button { width: 40px; padding: 0; justify-content: center; font-size: 0; }
   .autoplay-toggle span { display: none; }
+  .layout-switch button { width: 34px; padding: 0; justify-content: center; font-size: 0; }
   .intro > p:last-child { display: none; }
   .sphere-viewport { height: 64vh; }
   .sphere-photo { --radius: clamp(160px, 47vw, 220px); width: clamp(54px, 14vw, 72px); border-radius: 7px; }

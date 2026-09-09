@@ -13,8 +13,8 @@ const placeholderScenes = [
   { src: '/photos/moon-bike.png', title: '月下单车', note: '沿着河岸慢慢骑，等城市亮起灯。', date: '2026 · 初秋' },
 ];
 
-// 先用三张示例图铺满 36 个球面位置；收到正式照片后，可直接逐项替换。
-export const initialPhotos: Photo[] = Array.from({ length: 36 }, (_, index) => {
+// 先用三张示例图铺满 40 个球面位置；收到正式照片后，可直接逐项替换。
+export const initialPhotos: Photo[] = Array.from({ length: 40 }, (_, index) => {
   const scene = placeholderScenes[index % placeholderScenes.length];
   return {
     ...scene,

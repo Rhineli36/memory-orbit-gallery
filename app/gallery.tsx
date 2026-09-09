@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
-import { ChevronLeft, ChevronRight, Images, Maximize2, Pause, Play, RotateCcw, Settings2, Upload, X } from 'lucide-react';
+import { flushSync } from 'react-dom';
+import { ChevronLeft, ChevronRight, Grid3X3, Images, Maximize2, Orbit, Pause, Play, RotateCcw, Settings2, Upload, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { initialPhotos, type Photo } from './photos';
 
@@ -12,18 +13,38 @@ export default function Gallery() {
   const [selected, setSelected] = useState<number | null>(null);
   const [managing, setManaging] = useState(false);
   const [playing, setPlaying] = useState(true);
+  const [layoutMode, setLayoutMode] = useState<'orderly' | 'scatter'>('orderly');
   const sphereRef = useRef<HTMLDivElement>(null);
-  const drag = useRef({ active: false, moved: false, selectedIndex: -1, x: 0, y: 0, rx: -8, ry: -18, vx: 0, vy: 0 });
+  const drag = useRef({ active: false, moved: false, selectedIndex: -1, x: 0, y: 0, rx: -7, ry: -11, vx: 0, vy: 0 });
 
   const items = useMemo<SphereItem[]>(() => {
     const count = photos.length;
     return photos.map((photo, index) => {
+      const orderly = layoutMode === 'orderly';
+      const columns = 8;
+      const row = Math.floor(index / columns);
+      const column = index % columns;
+      const rows = Math.ceil(count / columns);
       const y = 1 - ((index + 0.5) / count) * 2;
-      const lat = Math.asin(y) * (180 / Math.PI);
-      const lon = (index * 137.508) % 360;
+      const lat = orderly ? -48 + row * (96 / Math.max(1, rows - 1)) : Math.asin(y) * (180 / Math.PI);
+      const lon = orderly ? (column * 45 + (row % 2 ? 22.5 : 0)) % 360 : (index * 137.508) % 360;
       return { ...photo, lat, lon };
     });
-  }, [photos]);
+  }, [photos, layoutMode]);
+
+  const transitionTo = (update: () => void) => {
+    const transitionDocument = document as Document & {
+      startViewTransition?: (callback: () => void) => void;
+    };
+    if (transitionDocument.startViewTransition) {
+      transitionDocument.startViewTransition(() => flushSync(update));
+    } else {
+      update();
+    }
+  };
+
+  const openPhoto = (index: number) => transitionTo(() => setSelected(index));
+  const closePhoto = () => transitionTo(() => setSelected(null));
 
   useEffect(() => {
     let frame = 0;
@@ -110,6 +131,10 @@ export default function Gallery() {
           <span><strong>光影轨迹</strong><small>MEMORY ORBIT</small></span>
         </a>
         <div className="header-actions">
+          <div className="layout-switch" aria-label="球面排列方式">
+            <button className={layoutMode === 'orderly' ? 'active' : ''} onClick={() => setLayoutMode('orderly')} aria-pressed={layoutMode === 'orderly'}><Grid3X3 size={14} /> 横排</button>
+            <button className={layoutMode === 'scatter' ? 'active' : ''} onClick={() => setLayoutMode('scatter')} aria-pressed={layoutMode === 'scatter'}><Orbit size={15} /> 星群</button>
+          </div>
           <button className={`autoplay-toggle ${playing ? 'is-playing' : ''}`} onClick={() => setPlaying(!playing)} aria-label={playing ? '关闭自动旋转' : '开启自动旋转'} aria-pressed={playing}>
             {playing ? <Pause size={15} /> : <Play size={15} />}<span>自动旋转</span><b>{playing ? '开' : '关'}</b>
           </button>
@@ -148,7 +173,7 @@ export default function Gallery() {
           onPointerUp={() => {
             const d = drag.current;
             d.active = false;
-            if (!d.moved && d.selectedIndex >= 0) setSelected(d.selectedIndex);
+            if (!d.moved && d.selectedIndex >= 0) openPhoto(d.selectedIndex);
             d.selectedIndex = -1;
           }}
           onPointerCancel={() => { drag.current.active = false; drag.current.selectedIndex = -1; }}
@@ -163,15 +188,25 @@ export default function Gallery() {
                 data-photo-index={index}
                 className="sphere-photo"
                 style={{ '--lat': `${photo.lat}deg`, '--lon': `${photo.lon}deg` } as CSSProperties}
-                onClick={(event) => { if (event.detail === 0) setSelected(index); }}
+                onClick={(event) => { if (event.detail === 0) openPhoto(index); }}
                 aria-label={`查看 ${photo.title}`}
               >
-                <img src={photo.src} alt={photo.title} draggable={false} />
+                <img src={photo.src} alt={photo.title} draggable={false} style={{ viewTransitionName: selected === index ? 'none' : `photo-${index}` }} />
                 <span><Maximize2 size={14} /></span>
               </button>
             ))}
           </div>
-          <div className="sphere-core"><span>{photos.length}</span><small>MEMORIES</small></div>
+          <div className="sphere-core" aria-hidden="true">
+            <div className="nebula">
+              <i className="nebula-cloud cloud-a" />
+              <i className="nebula-cloud cloud-b" />
+              <i className="nebula-cloud cloud-c" />
+              <i className="nebula-star star-a" />
+              <i className="nebula-star star-b" />
+              <i className="nebula-star star-c" />
+            </div>
+            <div className="core-count"><span>{photos.length}</span><small>MEMORIES</small></div>
+          </div>
         </div>
 
         <div className="drag-hint"><span className="mouse-icon" /> 拖动球面 · 滚轮漫游</div>
@@ -201,14 +236,14 @@ export default function Gallery() {
       </aside>
       {managing && <button className="manager-scrim" onClick={() => setManaging(false)} aria-label="关闭照片管理" />}
 
-      <Dialog open={selected !== null} onOpenChange={(open) => !open && setSelected(null)}>
+      <Dialog open={selected !== null} onOpenChange={(open) => !open && closePhoto()}>
         <DialogContent className="lightbox" showCloseButton={false}>
           {selected !== null && photos[selected] && (
             <>
               <DialogTitle className="sr-only">{photos[selected].title}</DialogTitle>
               <DialogDescription className="sr-only">{photos[selected].note}</DialogDescription>
-              <img className="lightbox-image" src={photos[selected].src} alt={photos[selected].title} />
-              <button className="lightbox-close" onClick={() => setSelected(null)} aria-label="关闭全屏照片"><X size={22} /></button>
+              <img className="lightbox-image" src={photos[selected].src} alt={photos[selected].title} style={{ viewTransitionName: `photo-${selected}` }} />
+              <button className="lightbox-close" onClick={closePhoto} aria-label="关闭全屏照片"><X size={22} /></button>
               <button className="lightbox-nav lightbox-prev" onClick={showPrevious} aria-label="上一张"><ChevronLeft size={30} /></button>
               <button className="lightbox-nav lightbox-next" onClick={showNext} aria-label="下一张"><ChevronRight size={30} /></button>
               <div className="lightbox-caption">
