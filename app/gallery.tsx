@@ -157,7 +157,7 @@ export default function Gallery() {
   };
 
   return (
-    <main className="album-shell">
+    <main className={`album-shell ${selected !== null ? 'lightbox-active' : ''}`}>
       <div className="ambient ambient-one" />
       <div className="ambient ambient-two" />
 
