@@ -92,13 +92,14 @@ button { color: inherit; }
 .star-a { left: 31px; top: 40px; }
 .star-b { right: 27px; top: 82px; width: 2px; height: 2px; animation-delay: -.8s; }
 .star-c { left: 76px; bottom: 24px; width: 2px; height: 2px; animation-delay: -1.4s; }
-.core-count { position: relative; z-index: 2; display: grid; place-items: center; width: 78px; height: 78px; border-radius: 50%; background: radial-gradient(circle, rgb(22 11 40 / 88%), rgb(8 5 14 / 76%) 67%, transparent 70%); box-shadow: 0 0 24px rgb(196 139 255 / 18%); }
-.core-count span { font-family: Georgia, serif; font-size: 28px; line-height: 1; text-shadow: 0 0 16px rgb(211 174 255 / 65%); }
-.core-count small { font-size: 7px; letter-spacing: .23em; color: #907ba9; }
+.particle-field { position: absolute; left: 50%; top: 50%; width: 2px; height: 2px; border-radius: 50%; background: #fff; }
+.particles-near { box-shadow: -61px -23px 0 #d9c2ff, 54px -38px 1px #8ebcff, 67px 18px 0 #fff, -48px 46px 1px #ba8cff, 18px 66px 0 #f6d7ff, -8px -70px 1px #9c79ff, 38px 46px 0 #fff, -70px 10px 0 #7caeff; animation: particle-orbit 12s linear infinite; }
+.particles-far { width: 1px; height: 1px; opacity: .62; box-shadow: -39px -55px 0 #fff, 29px -61px 0 #9fc5ff, 72px -8px 1px #d2b5ff, 52px 54px 0 #fff, -16px 74px 0 #9e72ff, -66px 34px 1px #f4d9ff, -75px -8px 0 #fff, 7px 39px 0 #7caeff; animation: particle-orbit 19s linear infinite reverse; }
 @keyframes cosmic-spin { to { transform: rotate(360deg); } }
 @keyframes nebula-breathe { 0%,100% { transform: scale(.96); opacity: .72; } 50% { transform: scale(1.04); opacity: 1; } }
 @keyframes cloud-drift { from { translate: -8px -3px; scale: .9; opacity: .35; } to { translate: 8px 5px; scale: 1.15; opacity: .72; } }
 @keyframes star-flicker { from { opacity: .2; scale: .7; } to { opacity: 1; scale: 1.45; } }
+@keyframes particle-orbit { from { transform: rotate(0deg) scale(.86); } 50% { opacity: 1; } to { transform: rotate(360deg) scale(1.06); } }
 .orbit-ring { position: absolute; width: 78%; aspect-ratio: 1; border: 1px solid rgb(194 159 252 / 7%); border-radius: 50%; pointer-events: none; }
 .orbit-ring-a { transform: rotateX(68deg); }
 .orbit-ring-b { transform: rotateY(72deg); }

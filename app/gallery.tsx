@@ -1,9 +1,8 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
-import { flushSync } from 'react-dom';
+import { createPortal, flushSync } from 'react-dom';
 import { ChevronLeft, ChevronRight, Globe2, Grid3X3, Images, Maximize2, Orbit, Pause, Play, RotateCcw, Settings2, Upload, X } from 'lucide-react';
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { initialPhotos, type Photo } from './photos';
 
 type SphereItem = Photo & { lat: number; lon: number };
@@ -19,15 +18,34 @@ export default function Gallery() {
 
   const items = useMemo<SphereItem[]>(() => {
     const count = photos.length;
+    if (layoutMode === 'classic') {
+      const rings = [
+        { count: 6, lat: -52, offset: 14 },
+        { count: 8, lat: -26, offset: 0 },
+        { count: 8, lat: 0, offset: 24 },
+        { count: 8, lat: 26, offset: 5 },
+        { count: 6, lat: 52, offset: 28 },
+      ];
+      return photos.slice(0, 36).map((photo, index) => {
+        let start = 0;
+        const ring = rings.find((entry) => {
+          if (index < start + entry.count) return true;
+          start += entry.count;
+          return false;
+        }) ?? rings[rings.length - 1];
+        const column = index - start;
+        return { ...photo, lat: ring.lat, lon: (column * (360 / ring.count) + ring.offset) % 360 };
+      });
+    }
     return photos.map((photo, index) => {
-      const gridded = layoutMode !== 'scatter';
+      const gridded = layoutMode === 'orderly';
       const columns = 8;
       const row = Math.floor(index / columns);
       const column = index % columns;
       const rows = Math.ceil(count / columns);
       const y = 1 - ((index + 0.5) / count) * 2;
-      const lat = gridded ? (layoutMode === 'classic' ? -54 : -48) + row * ((layoutMode === 'classic' ? 108 : 96) / Math.max(1, rows - 1)) : Math.asin(y) * (180 / Math.PI);
-      const lon = gridded ? (column * 45 + (layoutMode === 'orderly' && row % 2 ? 22.5 : 0)) % 360 : (index * 137.508) % 360;
+      const lat = gridded ? -48 + row * (96 / Math.max(1, rows - 1)) : Math.asin(y) * (180 / Math.PI);
+      const lon = gridded ? (column * 45 + (row % 2 ? 22.5 : 0)) % 360 : (index * 137.508) % 360;
       return { ...photo, lat, lon };
     });
   }, [photos, layoutMode]);
@@ -45,6 +63,17 @@ export default function Gallery() {
 
   const openPhoto = (index: number) => transitionTo(() => setSelected(index));
   const closePhoto = () => transitionTo(() => setSelected(null));
+
+  useEffect(() => {
+    if (selected === null) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') closePhoto();
+      if (event.key === 'ArrowLeft') showPrevious();
+      if (event.key === 'ArrowRight') showNext();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [selected]);
 
   useEffect(() => {
     let frame = 0;
@@ -205,8 +234,9 @@ export default function Gallery() {
               <i className="nebula-star star-a" />
               <i className="nebula-star star-b" />
               <i className="nebula-star star-c" />
+              <i className="particle-field particles-near" />
+              <i className="particle-field particles-far" />
             </div>
-            <div className="core-count"><span>{photos.length}</span><small>MEMORIES</small></div>
           </div>
         </div>
 
@@ -237,12 +267,11 @@ export default function Gallery() {
       </aside>
       {managing && <button className="manager-scrim" onClick={() => setManaging(false)} aria-label="关闭照片管理" />}
 
-      <Dialog open={selected !== null} onOpenChange={(open) => !open && closePhoto()}>
-        <DialogContent className="lightbox" showCloseButton={false}>
-          {selected !== null && photos[selected] && (
+      {selected !== null && photos[selected] && createPortal(
+        <div className="lightbox" role="dialog" aria-modal="true" aria-labelledby="lightbox-title" aria-describedby="lightbox-note">
             <>
-              <DialogTitle className="sr-only">{photos[selected].title}</DialogTitle>
-              <DialogDescription className="sr-only">{photos[selected].note}</DialogDescription>
+              <h2 id="lightbox-title" className="sr-only">{photos[selected].title}</h2>
+              <p id="lightbox-note" className="sr-only">{photos[selected].note}</p>
               <div
                 className="lightbox-media"
                 role="img"
@@ -257,9 +286,9 @@ export default function Gallery() {
                 <div><p>{photos[selected].date}</p><h2>{photos[selected].title}</h2><small>{photos[selected].note}</small></div>
               </div>
             </>
-          )}
-        </DialogContent>
-      </Dialog>
+        </div>,
+        document.body,
+      )}
     </main>
   );
 }
