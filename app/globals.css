@@ -130,14 +130,17 @@ button { color: inherit; }
 
 .lightbox { position: fixed !important; z-index: 9999 !important; inset: 0 !important; top: 0 !important; right: 0 !important; bottom: 0 !important; left: 0 !important; display: block !important; width: 100% !important; min-width: 100vw !important; max-width: none !important; height: 100% !important; min-height: 100vh !important; margin: 0 !important; transform: none !important; padding: 0 !important; border: 0 !important; border-radius: 0 !important; overflow: hidden !important; background: #050409 !important; box-shadow: none !important; isolation: isolate; }
 [data-slot="dialog-overlay"] { background: #050409 !important; backdrop-filter: none !important; }
-.lightbox-media { position: absolute; z-index: 0; inset: 0; width: 100%; height: 100%; background-color: #050409; background-repeat: no-repeat; background-position: center center; background-size: cover; transform-origin: center center; }
-.lightbox-media::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgb(2 1 5 / 8%) 0%, transparent 58%, rgb(2 1 5 / 72%) 100%); }
+.lightbox-media { position: absolute; z-index: 0; inset: 0; right: 0; display: grid; place-items: center; overflow: hidden; background: #050409; transform-origin: center center; transition: right .38s cubic-bezier(.22,.72,.16,1); }
+.lightbox-media.media-with-details { right: 390px; }
+.lightbox-backdrop { position: absolute; z-index: 0; inset: -30px; background-repeat: no-repeat; background-position: center; background-size: cover; filter: blur(24px) brightness(.3) saturate(.75); opacity: .7; }
+.lightbox-media::after { content: ''; position: absolute; z-index: 1; inset: 0; background: radial-gradient(circle, transparent 48%, rgb(2 1 5 / 32%) 100%); pointer-events: none; }
+.lightbox-media > img { position: relative; z-index: 2; display: block; width: 100%; height: 100%; object-fit: contain; object-position: center; filter: drop-shadow(0 18px 35px rgb(0 0 0 / 35%)); }
 .lightbox-toolbar { position: absolute; z-index: 10002; top: 24px; right: 26px; left: 26px; display: flex; align-items: center; justify-content: space-between; pointer-events: none; }
 .back-to-sphere, .details-toggle { min-height: 42px; border: 1px solid rgb(255 255 255 / 18%); border-radius: 99px; color: #f4eff9; background: rgb(7 5 12 / 48%); box-shadow: 0 8px 26px rgb(0 0 0 / 22%); backdrop-filter: blur(16px); pointer-events: auto; }
 .back-to-sphere { display: flex; align-items: center; gap: 9px; padding: 0 16px 0 13px; cursor: pointer; }
 .back-to-sphere:hover { border-color: rgb(218 191 255 / 55%); background: rgb(45 31 65 / 62%); }
 .details-toggle { display: flex; align-items: center; gap: 11px; padding: 0 12px 0 15px; font-size: 13px; }
-.lightbox-details { position: absolute; z-index: 7; right: 28px; bottom: 28px; width: min(370px, calc(100vw - 56px)); padding: 18px; border: 1px solid rgb(255 255 255 / 16%); border-radius: 18px; color: #f5f0f9; background: rgb(8 6 13 / 58%); box-shadow: 0 18px 50px rgb(0 0 0 / 30%); backdrop-filter: blur(20px); animation: details-in .25s ease-out both; }
+.lightbox-details { position: absolute; z-index: 7; top: 0; right: 0; bottom: 0; width: 390px; padding: 92px 24px 28px; overflow-y: auto; border-left: 1px solid rgb(255 255 255 / 14%); color: #f5f0f9; background: rgb(8 6 13 / 88%); box-shadow: -20px 0 50px rgb(0 0 0 / 24%); backdrop-filter: blur(24px); animation: panel-in .32s cubic-bezier(.22,.72,.16,1) both; }
 .details-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 14px; margin-bottom: 12px; }
 .details-heading span { color: #bc94f2; font: 11px Georgia, serif; letter-spacing: .12em; }
 .details-heading h2 { margin: 0; font-family: Georgia, "Songti SC", serif; font-size: 21px; font-weight: 400; }
@@ -148,6 +151,8 @@ button { color: inherit; }
 .lightbox-details textarea { resize: vertical; min-height: 48px; max-height: 110px; padding: 8px 10px; }
 .lightbox-details input:focus, .lightbox-details textarea:focus { border-color: rgb(194 151 255 / 55%); background: rgb(40 27 57 / 62%); }
 @keyframes details-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes panel-in { from { opacity: 0; transform: translateX(28px); } to { opacity: 1; transform: translateX(0); } }
+.lightbox-next.nav-with-details { right: 410px; }
 .lightbox-close, .lightbox-nav { position: absolute; z-index: 5; display: grid; place-items: center; border: 1px solid rgb(255 255 255 / 16%); border-radius: 50%; background: rgb(8 7 12 / 45%); backdrop-filter: blur(14px); cursor: pointer; }
 .lightbox-close { top: 25px; right: 28px; width: 44px; height: 44px; }
 .lightbox-nav { top: 50%; width: 52px; height: 52px; transform: translateY(-50%); }
@@ -191,6 +196,9 @@ button { color: inherit; }
   .back-to-sphere { font-size: 13px; }
   .details-toggle > span { display: none; }
   .lightbox-details { right: 14px; bottom: 14px; width: calc(100vw - 28px); padding: 14px; }
+  .lightbox-media.media-with-details { right: 0; bottom: 44vh; }
+  .lightbox-details { top: auto; right: 0; bottom: 0; width: 100%; height: 44vh; padding: 68px 16px 16px; border-top: 1px solid rgb(255 255 255 / 14%); border-left: 0; border-radius: 18px 18px 0 0; }
+  .lightbox-next.nav-with-details { right: 12px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

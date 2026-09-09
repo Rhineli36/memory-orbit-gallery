@@ -280,11 +280,14 @@ export default function Gallery() {
               <h2 id="lightbox-title" className="sr-only">{photos[selected].title}</h2>
               <p id="lightbox-note" className="sr-only">{photos[selected].note}</p>
               <div
-                className="lightbox-media"
+                className={`lightbox-media ${detailsVisible ? 'media-with-details' : ''}`}
                 role="img"
                 aria-label={photos[selected].title}
-                style={{ backgroundImage: `url("${photos[selected].src}")`, viewTransitionName: `photo-${selected}` }}
-              />
+                style={{ viewTransitionName: `photo-${selected}` }}
+              >
+                <div className="lightbox-backdrop" style={{ backgroundImage: `url("${photos[selected].src}")` }} />
+                <img src={photos[selected].src} alt={photos[selected].title} />
+              </div>
               <div className="lightbox-toolbar">
                 <button className="back-to-sphere" onClick={closePhoto}><ArrowLeft size={18} /> 返回球面</button>
                 <label className="details-toggle">
@@ -293,7 +296,7 @@ export default function Gallery() {
                 </label>
               </div>
               <button className="lightbox-nav lightbox-prev" onClick={showPrevious} aria-label="上一张"><ChevronLeft size={30} /></button>
-              <button className="lightbox-nav lightbox-next" onClick={showNext} aria-label="下一张"><ChevronRight size={30} /></button>
+              <button className={`lightbox-nav lightbox-next ${detailsVisible ? 'nav-with-details' : ''}`} onClick={showNext} aria-label="下一张"><ChevronRight size={30} /></button>
               {detailsVisible && (
                 <aside className="lightbox-details">
                   <div className="details-heading">
