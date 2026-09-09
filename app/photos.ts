@@ -3,14 +3,15 @@ export type Photo = {
   src: string;
   title: string;
   note: string;
+  story: string;
   date: string;
 };
 
 // 替换相册内容时，只需要维护这个列表和 public/photos 里的文件。
 const placeholderScenes = [
-  { src: '/photos/coast.png', title: '暮色海岸', note: '风把最后一束光留在了海面上。', date: '2026 · 海边' },
-  { src: '/photos/rainy-city.png', title: '雨夜列车', note: '隔着车窗，城市变成一片柔软的光。', date: '2026 · 夜行' },
-  { src: '/photos/moon-bike.png', title: '月下单车', note: '沿着河岸慢慢骑，等城市亮起灯。', date: '2026 · 初秋' },
+  { src: '/photos/coast.png', title: '暮色海岸', story: '日落前抵达海边，在风里停留了很久。', note: '风把最后一束光留在了海面上。', date: '2026 · 海边' },
+  { src: '/photos/rainy-city.png', title: '雨夜列车', story: '回程途中忽然下雨，城市倒映在车窗上。', note: '隔着车窗，城市变成一片柔软的光。', date: '2026 · 夜行' },
+  { src: '/photos/moon-bike.png', title: '月下单车', story: '沿河骑到天色变暗，新月刚好升起来。', note: '沿着河岸慢慢骑，等城市亮起灯。', date: '2026 · 初秋' },
 ];
 
 // 先用三张示例图铺满 40 个球面位置；收到正式照片后，可直接逐项替换。

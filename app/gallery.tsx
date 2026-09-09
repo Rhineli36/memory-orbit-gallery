@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { createPortal, flushSync } from 'react-dom';
-import { ChevronLeft, ChevronRight, Globe2, Grid3X3, Images, Maximize2, Orbit, Pause, Play, RotateCcw, Settings2, Upload, X } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight, Globe2, Grid3X3, Images, Maximize2, Orbit, Pause, Play, RotateCcw, Settings2, Upload, X } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 import { initialPhotos, type Photo } from './photos';
 
 type SphereItem = Photo & { lat: number; lon: number };
@@ -12,6 +13,7 @@ export default function Gallery() {
   const [selected, setSelected] = useState<number | null>(null);
   const [managing, setManaging] = useState(false);
   const [playing, setPlaying] = useState(true);
+  const [detailsVisible, setDetailsVisible] = useState(true);
   const [layoutMode, setLayoutMode] = useState<'orderly' | 'classic' | 'scatter'>('orderly');
   const sphereRef = useRef<HTMLDivElement>(null);
   const drag = useRef({ active: false, moved: false, selectedIndex: -1, x: 0, y: 0, rx: -7, ry: -11, vx: 0, vy: 0 });
@@ -140,6 +142,7 @@ export default function Gallery() {
       id: `upload-${Date.now()}-${index}`,
       src: URL.createObjectURL(file),
       title: file.name.replace(/\.[^.]+$/, ''),
+      story: '',
       note: '刚刚加入这颗影像星球。',
       date: '本地上传',
     }));
@@ -148,6 +151,10 @@ export default function Gallery() {
 
   const showPrevious = () => selected !== null && setSelected((selected - 1 + photos.length) % photos.length);
   const showNext = () => selected !== null && setSelected((selected + 1) % photos.length);
+  const updateSelectedPhoto = (patch: Partial<Photo>) => {
+    if (selected === null) return;
+    setPhotos((current) => current.map((photo, index) => index === selected ? { ...photo, ...patch } : photo));
+  };
 
   return (
     <main className="album-shell">
@@ -278,13 +285,26 @@ export default function Gallery() {
                 aria-label={photos[selected].title}
                 style={{ backgroundImage: `url("${photos[selected].src}")`, viewTransitionName: `photo-${selected}` }}
               />
-              <button className="lightbox-close" onClick={closePhoto} aria-label="关闭全屏照片"><X size={22} /></button>
+              <div className="lightbox-toolbar">
+                <button className="back-to-sphere" onClick={closePhoto}><ArrowLeft size={18} /> 返回球面</button>
+                <label className="details-toggle">
+                  <span>文字栏</span>
+                  <Switch checked={detailsVisible} onCheckedChange={setDetailsVisible} aria-label="显示或隐藏文字栏" />
+                </label>
+              </div>
               <button className="lightbox-nav lightbox-prev" onClick={showPrevious} aria-label="上一张"><ChevronLeft size={30} /></button>
               <button className="lightbox-nav lightbox-next" onClick={showNext} aria-label="下一张"><ChevronRight size={30} /></button>
-              <div className="lightbox-caption">
-                <span>{String(selected + 1).padStart(2, '0')} <i /> {String(photos.length).padStart(2, '0')}</span>
-                <div><p>{photos[selected].date}</p><h2>{photos[selected].title}</h2><small>{photos[selected].note}</small></div>
-              </div>
+              {detailsVisible && (
+                <aside className="lightbox-details">
+                  <div className="details-heading">
+                    <span>{String(selected + 1).padStart(2, '0')} / {String(photos.length).padStart(2, '0')}</span>
+                    <h2>{photos[selected].title}</h2>
+                  </div>
+                  <label><span>时间</span><input value={photos[selected].date} onChange={(event) => updateSelectedPhoto({ date: event.target.value })} /></label>
+                  <label><span>当时的事情</span><textarea rows={2} value={photos[selected].story} placeholder="记录当时发生的事情…" onChange={(event) => updateSelectedPhoto({ story: event.target.value })} /></label>
+                  <label><span>感想</span><textarea rows={2} value={photos[selected].note} placeholder="写下这一刻的感受…" onChange={(event) => updateSelectedPhoto({ note: event.target.value })} /></label>
+                </aside>
+              )}
             </>
         </div>,
         document.body,
