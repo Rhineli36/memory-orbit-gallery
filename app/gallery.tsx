@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { flushSync } from 'react-dom';
-import { ChevronLeft, ChevronRight, Grid3X3, Images, Maximize2, Orbit, Pause, Play, RotateCcw, Settings2, Upload, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Globe2, Grid3X3, Images, Maximize2, Orbit, Pause, Play, RotateCcw, Settings2, Upload, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { initialPhotos, type Photo } from './photos';
 
@@ -13,21 +13,21 @@ export default function Gallery() {
   const [selected, setSelected] = useState<number | null>(null);
   const [managing, setManaging] = useState(false);
   const [playing, setPlaying] = useState(true);
-  const [layoutMode, setLayoutMode] = useState<'orderly' | 'scatter'>('orderly');
+  const [layoutMode, setLayoutMode] = useState<'orderly' | 'classic' | 'scatter'>('orderly');
   const sphereRef = useRef<HTMLDivElement>(null);
   const drag = useRef({ active: false, moved: false, selectedIndex: -1, x: 0, y: 0, rx: -7, ry: -11, vx: 0, vy: 0 });
 
   const items = useMemo<SphereItem[]>(() => {
     const count = photos.length;
     return photos.map((photo, index) => {
-      const orderly = layoutMode === 'orderly';
+      const gridded = layoutMode !== 'scatter';
       const columns = 8;
       const row = Math.floor(index / columns);
       const column = index % columns;
       const rows = Math.ceil(count / columns);
       const y = 1 - ((index + 0.5) / count) * 2;
-      const lat = orderly ? -48 + row * (96 / Math.max(1, rows - 1)) : Math.asin(y) * (180 / Math.PI);
-      const lon = orderly ? (column * 45 + (row % 2 ? 22.5 : 0)) % 360 : (index * 137.508) % 360;
+      const lat = gridded ? (layoutMode === 'classic' ? -54 : -48) + row * ((layoutMode === 'classic' ? 108 : 96) / Math.max(1, rows - 1)) : Math.asin(y) * (180 / Math.PI);
+      const lon = gridded ? (column * 45 + (layoutMode === 'orderly' && row % 2 ? 22.5 : 0)) % 360 : (index * 137.508) % 360;
       return { ...photo, lat, lon };
     });
   }, [photos, layoutMode]);
@@ -133,6 +133,7 @@ export default function Gallery() {
         <div className="header-actions">
           <div className="layout-switch" aria-label="球面排列方式">
             <button className={layoutMode === 'orderly' ? 'active' : ''} onClick={() => setLayoutMode('orderly')} aria-pressed={layoutMode === 'orderly'}><Grid3X3 size={14} /> 横排</button>
+            <button className={layoutMode === 'classic' ? 'active' : ''} onClick={() => setLayoutMode('classic')} aria-pressed={layoutMode === 'classic'}><Globe2 size={14} /> 经典</button>
             <button className={layoutMode === 'scatter' ? 'active' : ''} onClick={() => setLayoutMode('scatter')} aria-pressed={layoutMode === 'scatter'}><Orbit size={15} /> 星群</button>
           </div>
           <button className={`autoplay-toggle ${playing ? 'is-playing' : ''}`} onClick={() => setPlaying(!playing)} aria-label={playing ? '关闭自动旋转' : '开启自动旋转'} aria-pressed={playing}>
@@ -242,7 +243,12 @@ export default function Gallery() {
             <>
               <DialogTitle className="sr-only">{photos[selected].title}</DialogTitle>
               <DialogDescription className="sr-only">{photos[selected].note}</DialogDescription>
-              <img className="lightbox-image" src={photos[selected].src} alt={photos[selected].title} style={{ viewTransitionName: `photo-${selected}` }} />
+              <div
+                className="lightbox-media"
+                role="img"
+                aria-label={photos[selected].title}
+                style={{ backgroundImage: `url("${photos[selected].src}")`, viewTransitionName: `photo-${selected}` }}
+              />
               <button className="lightbox-close" onClick={closePhoto} aria-label="关闭全屏照片"><X size={22} /></button>
               <button className="lightbox-nav lightbox-prev" onClick={showPrevious} aria-label="上一张"><ChevronLeft size={30} /></button>
               <button className="lightbox-nav lightbox-next" onClick={showNext} aria-label="下一张"><ChevronRight size={30} /></button>

@@ -77,7 +77,7 @@ button { color: inherit; }
 .sphere-photo:hover::before, .sphere-photo:focus-visible::before { border-color: rgb(255 255 255 / 68%); box-shadow: inset 0 0 12px rgb(210 173 255 / 42%); }
 .sphere-photo:hover span { opacity: 1; }
 @keyframes photo-glow { from { box-shadow: 0 0 7px rgb(224 196 255 / 70%), 0 0 20px rgb(171 112 255 / 42%), 0 18px 35px rgb(0 0 0 / 48%); } to { box-shadow: 0 0 11px rgb(235 217 255 / 92%), 0 0 34px rgb(171 112 255 / 66%), 0 18px 35px rgb(0 0 0 / 48%); } }
-::view-transition-group(*) { animation-duration: .58s; animation-timing-function: cubic-bezier(.22,.72,.16,1); }
+::view-transition-group(*) { transform-origin: center center; animation-duration: .58s; animation-timing-function: cubic-bezier(.22,.72,.16,1); }
 ::view-transition-old(root), ::view-transition-new(root) { animation-duration: .34s; }
 .sphere-core { position: absolute; z-index: -1; display: grid; place-items: center; width: 176px; height: 176px; color: #eadcff; pointer-events: none; filter: drop-shadow(0 0 26px rgb(144 82 245 / 28%)); }
 .nebula { position: absolute; inset: 0; overflow: hidden; border-radius: 50%; border: 1px solid rgb(206 174 255 / 16%); background: radial-gradient(circle at 48% 47%, rgb(255 255 255 / 20%) 0 1%, rgb(153 87 255 / 20%) 7%, rgb(56 26 102 / 20%) 29%, rgb(4 3 10 / 20%) 61%, transparent 72%); box-shadow: inset 0 0 28px rgb(177 113 255 / 16%), 0 0 45px rgb(109 59 207 / 13%); animation: nebula-breathe 4.8s ease-in-out infinite; }
@@ -127,9 +127,10 @@ button { color: inherit; }
 .row-actions button:hover { color: #d7baff; background: rgb(255 255 255 / 7%); }
 .reset-button { display: flex; align-items: center; gap: 7px; margin: 16px auto 0; border: 0; color: #777080; background: transparent; font-size: 12px; cursor: pointer; }
 
-.lightbox { inset: 0 !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100dvh !important; max-width: none !important; transform: none !important; padding: 0 !important; border: 0 !important; border-radius: 0 !important; overflow: hidden; background: #050409 !important; box-shadow: none !important; }
+.lightbox { position: fixed !important; inset: 0 !important; top: 0 !important; right: 0 !important; bottom: 0 !important; left: 0 !important; display: block !important; width: 100% !important; min-width: 100vw !important; max-width: none !important; height: 100% !important; min-height: 100vh !important; margin: 0 !important; transform: none !important; padding: 0 !important; border: 0 !important; border-radius: 0 !important; overflow: hidden !important; background: #050409 !important; box-shadow: none !important; }
 [data-slot="dialog-overlay"] { background: #050409 !important; backdrop-filter: none !important; }
-.lightbox-image { width: 100%; height: 100%; object-fit: contain; }
+.lightbox-media { position: absolute; z-index: 0; inset: 0; width: 100%; height: 100%; background-color: #050409; background-repeat: no-repeat; background-position: center center; background-size: cover; transform-origin: center center; }
+.lightbox-media::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgb(2 1 5 / 8%) 0%, transparent 58%, rgb(2 1 5 / 72%) 100%); }
 .lightbox-close, .lightbox-nav { position: absolute; z-index: 5; display: grid; place-items: center; border: 1px solid rgb(255 255 255 / 16%); border-radius: 50%; background: rgb(8 7 12 / 45%); backdrop-filter: blur(14px); cursor: pointer; }
 .lightbox-close { top: 25px; right: 28px; width: 44px; height: 44px; }
 .lightbox-nav { top: 50%; width: 52px; height: 52px; transform: translateY(-50%); }
