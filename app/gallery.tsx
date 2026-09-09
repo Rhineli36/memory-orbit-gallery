@@ -181,7 +181,7 @@ export default function Gallery() {
 
       <section id="gallery" className="gallery-stage" aria-label="3D 球面相册">
         <div className="intro">
-          <p className="eyebrow"><span /> 私人影像收藏 · {photos.length} 张</p>
+          <p className="eyebrow"><span /> 私人影像收藏</p>
           <h1>让记忆，<em>沿轨迹流动</em></h1>
           <p>拖动探索影像星球，滚轮也能改变方向。<br />轻点任意照片，进入全屏细节。</p>
         </div>
@@ -233,7 +233,7 @@ export default function Gallery() {
               </button>
             ))}
           </div>
-          <div className="sphere-core" aria-hidden="true">
+          <div className={`sphere-core core-${layoutMode}`} aria-hidden="true">
             <div className="nebula">
               <i className="nebula-cloud cloud-a" />
               <i className="nebula-cloud cloud-b" />

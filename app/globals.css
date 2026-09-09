@@ -96,8 +96,27 @@ button { color: inherit; }
 .particle-field { position: absolute; left: 50%; top: 50%; width: 2px; height: 2px; border-radius: 50%; background: #fff; }
 .particles-near { box-shadow: -61px -23px 0 #d9c2ff, 54px -38px 1px #8ebcff, 67px 18px 0 #fff, -48px 46px 1px #ba8cff, 18px 66px 0 #f6d7ff, -8px -70px 1px #9c79ff, 38px 46px 0 #fff, -70px 10px 0 #7caeff; animation: particle-orbit 12s linear infinite; }
 .particles-far { width: 1px; height: 1px; opacity: .62; box-shadow: -39px -55px 0 #fff, 29px -61px 0 #9fc5ff, 72px -8px 1px #d2b5ff, 52px 54px 0 #fff, -16px 74px 0 #9e72ff, -66px 34px 1px #f4d9ff, -75px -8px 0 #fff, 7px 39px 0 #7caeff; animation: particle-orbit 19s linear infinite reverse; }
+.sphere-core, .sphere-core .nebula, .sphere-core .nebula::before, .sphere-core .nebula::after, .sphere-core i { transition: background .55s ease, border-color .55s ease, box-shadow .55s ease, opacity .45s ease, filter .55s ease; }
+.core-orderly { width: 210px; height: 118px; filter: drop-shadow(0 0 28px rgb(77 177 255 / 24%)); }
+.core-orderly .nebula { overflow: visible; border-radius: 50%; border-color: rgb(130 207 255 / 24%); background: radial-gradient(ellipse at center, rgb(210 244 255 / 34%) 0 2%, rgb(68 176 255 / 20%) 10%, rgb(31 73 143 / 13%) 38%, transparent 68%); box-shadow: inset 0 0 24px rgb(96 200 255 / 16%), 0 0 38px rgb(69 146 255 / 20%); animation: energy-breathe 3.2s ease-in-out infinite; }
+.core-orderly .nebula::before { inset: 18px -18px; border: 1px solid rgb(154 221 255 / 36%); border-left-color: transparent; border-right-color: transparent; animation: energy-scan 3.8s ease-in-out infinite; }
+.core-orderly .nebula::after { inset: 36px -36px; border-style: solid; border-color: rgb(146 126 255 / 22%); border-top-color: transparent; border-bottom-color: transparent; animation: energy-scan 5.4s ease-in-out infinite reverse; }
+.core-orderly .nebula-cloud { opacity: .22; filter: blur(13px); }
+.core-orderly .particles-near { animation-duration: 8s; }
+.core-orderly .particles-far { animation-duration: 13s; }
+.core-scatter { width: 194px; height: 194px; filter: drop-shadow(0 0 42px rgb(177 112 255 / 38%)); }
+.core-scatter .nebula { border-color: transparent; background: radial-gradient(circle, #fff 0 2px, rgb(208 181 255 / 90%) 3px, rgb(149 82 255 / 34%) 8%, rgb(48 22 94 / 18%) 28%, transparent 63%); box-shadow: 0 0 52px rgb(132 72 255 / 22%); animation: star-core-pulse 2.2s ease-in-out infinite; }
+.core-scatter .nebula::before { inset: 44px; border-color: rgb(238 224 255 / 34%); border-style: dotted; animation-duration: 3.8s; }
+.core-scatter .nebula::after { inset: 18px; border-color: rgb(123 180 255 / 24%); border-style: dashed; animation-duration: 7s; }
+.core-scatter .nebula-cloud { opacity: .28; filter: blur(15px); }
+.core-scatter .particles-near { animation: particle-burst 4.6s ease-in-out infinite; }
+.core-scatter .particles-far { animation: particle-burst 6.8s ease-in-out -2s infinite reverse; }
 @keyframes cosmic-spin { to { transform: rotate(360deg); } }
 @keyframes nebula-breathe { 0%,100% { transform: scale(.96); opacity: .72; } 50% { transform: scale(1.04); opacity: 1; } }
+@keyframes energy-breathe { 0%,100% { transform: scaleX(.94); opacity: .66; } 50% { transform: scaleX(1.04); opacity: 1; } }
+@keyframes energy-scan { 0%,100% { transform: scaleX(.78); opacity: .3; } 50% { transform: scaleX(1.08); opacity: .9; } }
+@keyframes star-core-pulse { 0%,100% { transform: scale(.9) rotate(-3deg); opacity: .68; } 50% { transform: scale(1.08) rotate(3deg); opacity: 1; } }
+@keyframes particle-burst { 0%,100% { transform: rotate(0deg) scale(.58); opacity: .24; } 52% { transform: rotate(185deg) scale(1.22); opacity: 1; } 100% { transform: rotate(360deg) scale(.58); opacity: .24; } }
 @keyframes cloud-drift { from { translate: -8px -3px; scale: .9; opacity: .35; } to { translate: 8px 5px; scale: 1.15; opacity: .72; } }
 @keyframes star-flicker { from { opacity: .2; scale: .7; } to { opacity: 1; scale: 1.45; } }
 @keyframes particle-orbit { from { transform: rotate(0deg) scale(.86); } 50% { opacity: 1; } to { transform: rotate(360deg) scale(1.06); } }
