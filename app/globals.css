@@ -135,7 +135,7 @@ button { color: inherit; }
 .lightbox-media.media-with-details { right: 390px; }
 .lightbox-backdrop { position: absolute; z-index: 0; inset: -30px; background-repeat: no-repeat; background-position: center; background-size: cover; filter: blur(24px) brightness(.3) saturate(.75); opacity: .7; }
 .lightbox-media::after { content: ''; position: absolute; z-index: 1; inset: 0; background: radial-gradient(circle, transparent 48%, rgb(2 1 5 / 32%) 100%); pointer-events: none; }
-.lightbox-media > img { position: relative; z-index: 2; display: block; width: auto; height: auto; max-width: 100%; max-height: 100%; object-fit: contain; object-position: center; filter: drop-shadow(0 18px 35px rgb(0 0 0 / 35%)); }
+.lightbox-photo { position: absolute; z-index: 2; inset: 0; background-repeat: no-repeat; background-position: center; background-size: contain; filter: drop-shadow(0 18px 35px rgb(0 0 0 / 35%)); }
 .lightbox-toolbar { position: absolute; z-index: 10002; top: 24px; right: 26px; left: 26px; display: flex; align-items: center; justify-content: space-between; pointer-events: none; }
 .back-to-sphere, .details-toggle { min-height: 42px; border: 1px solid rgb(255 255 255 / 18%); border-radius: 99px; color: #f4eff9; background: rgb(7 5 12 / 48%); box-shadow: 0 8px 26px rgb(0 0 0 / 22%); backdrop-filter: blur(16px); pointer-events: auto; }
 .back-to-sphere { display: flex; align-items: center; gap: 9px; padding: 0 16px 0 13px; cursor: pointer; }

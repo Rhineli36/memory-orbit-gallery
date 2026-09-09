@@ -286,7 +286,7 @@ export default function Gallery() {
                 style={{ viewTransitionName: `photo-${selected}` }}
               >
                 <div className="lightbox-backdrop" style={{ backgroundImage: `url("${photos[selected].src}")` }} />
-                <img src={photos[selected].src} alt={photos[selected].title} />
+                <div className="lightbox-photo" aria-hidden="true" style={{ backgroundImage: `url("${photos[selected].src}")` }} />
               </div>
               <div className="lightbox-toolbar">
                 <button className="back-to-sphere" onClick={closePhoto}><ArrowLeft size={18} /> 返回球面</button>
