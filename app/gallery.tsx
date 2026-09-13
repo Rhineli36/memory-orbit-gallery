@@ -2,19 +2,22 @@
 
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { createPortal, flushSync } from 'react-dom';
-import { ArrowLeft, ChevronLeft, ChevronRight, Globe2, Grid3X3, Images, Maximize2, Orbit, Pause, Play, RotateCcw, Settings2, Upload, X } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight, Globe2, Grid3X3, Images, LogIn, Maximize2, Orbit, Pause, Play, RotateCcw, Settings2, Upload, X } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { initialPhotos, type Photo } from './photos';
 
 type SphereItem = Photo & { lat: number; lon: number };
+type GalleryProps = { isOwner: boolean; signInPath: string; showSignIn: boolean };
 
-export default function Gallery() {
+export default function Gallery({ isOwner, signInPath, showSignIn }: GalleryProps) {
   const [photos, setPhotos] = useState<Photo[]>(initialPhotos);
   const [selected, setSelected] = useState<number | null>(null);
   const [managing, setManaging] = useState(false);
   const [playing, setPlaying] = useState(true);
   const [detailsVisible, setDetailsVisible] = useState(true);
   const [layoutMode, setLayoutMode] = useState<'orderly' | 'classic' | 'scatter'>('orderly');
+  const [storageReady, setStorageReady] = useState(false);
+  const [storageState, setStorageState] = useState<'loading' | 'ready' | 'saving' | 'saved' | 'error'>('loading');
   const sphereRef = useRef<HTMLDivElement>(null);
   const drag = useRef({ active: false, moved: false, selectedIndex: -1, x: 0, y: 0, rx: -7, ry: -11, vx: 0, vy: 0 });
 
@@ -65,6 +68,41 @@ export default function Gallery() {
 
   const openPhoto = (index: number) => transitionTo(() => setSelected(index));
   const closePhoto = () => transitionTo(() => setSelected(null));
+
+  useEffect(() => {
+    let active = true;
+    fetch('/api/gallery', { cache: 'no-store' })
+      .then(async (response) => {
+        if (!response.ok) throw new Error('load failed');
+        return response.json() as Promise<{ initialized: boolean; photos: Photo[] }>;
+      })
+      .then((data) => {
+        if (!active) return;
+        if (data.initialized) setPhotos(data.photos);
+        setStorageReady(true);
+        setStorageState('ready');
+      })
+      .catch(() => active && setStorageState('error'));
+    return () => { active = false; };
+  }, []);
+
+  useEffect(() => {
+    if (!isOwner || !storageReady) return;
+    setStorageState('saving');
+    const timer = window.setTimeout(() => {
+      fetch('/api/gallery', {
+        method: 'PUT',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ photos }),
+      })
+        .then((response) => {
+          if (!response.ok) throw new Error('save failed');
+          setStorageState('saved');
+        })
+        .catch(() => setStorageState('error'));
+    }, 500);
+    return () => window.clearTimeout(timer);
+  }, [photos, isOwner, storageReady]);
 
   useEffect(() => {
     if (selected === null) return;
@@ -136,17 +174,23 @@ export default function Gallery() {
     });
   };
 
-  const onUpload = (files: FileList | null) => {
+  const onUpload = async (files: FileList | null) => {
     if (!files?.length) return;
-    const additions = Array.from(files).map((file, index) => ({
-      id: `upload-${Date.now()}-${index}`,
-      src: URL.createObjectURL(file),
-      title: file.name.replace(/\.[^.]+$/, ''),
-      story: '',
-      note: '刚刚加入这颗影像星球。',
-      date: '本地上传',
-    }));
-    setPhotos((current) => [...current, ...additions]);
+    setStorageState('saving');
+    try {
+      const additions: Photo[] = [];
+      for (const file of Array.from(files)) {
+        const form = new FormData();
+        form.append('file', file);
+        const response = await fetch('/api/upload', { method: 'POST', body: form });
+        if (!response.ok) throw new Error('upload failed');
+        const data = await response.json() as { photo: Photo };
+        additions.push(data.photo);
+      }
+      setPhotos((current) => [...current, ...additions]);
+    } catch {
+      setStorageState('error');
+    }
   };
 
   const showPrevious = () => selected !== null && setSelected((selected - 1 + photos.length) % photos.length);
@@ -175,7 +219,8 @@ export default function Gallery() {
           <button className={`autoplay-toggle ${playing ? 'is-playing' : ''}`} onClick={() => setPlaying(!playing)} aria-label={playing ? '关闭自动旋转' : '开启自动旋转'} aria-pressed={playing}>
             {playing ? <Pause size={15} /> : <Play size={15} />}<span>自动旋转</span><b>{playing ? '开' : '关'}</b>
           </button>
-          <button className="manage-button" onClick={() => setManaging(true)}><Settings2 size={17} /> 管理照片</button>
+          {isOwner && <button className="manage-button" onClick={() => setManaging(true)}><Settings2 size={17} /> 管理照片</button>}
+          {!isOwner && showSignIn && <a className="manage-button manage-login" href={signInPath} target="_top"><LogIn size={17} /> 管理登录</a>}
         </div>
       </header>
 
@@ -250,13 +295,14 @@ export default function Gallery() {
         <div className="drag-hint"><span className="mouse-icon" /> 拖动球面 · 滚轮漫游</div>
       </section>
 
-      <aside className={`manager ${managing ? 'manager-open' : ''}`} aria-hidden={!managing}>
+      {isOwner && <aside className={`manager ${managing ? 'manager-open' : ''}`} aria-hidden={!managing}>
         <div className="manager-head">
           <div><p className="eyebrow">COLLECTION</p><h2>照片管理</h2></div>
           <button className="icon-button" onClick={() => setManaging(false)} aria-label="关闭照片管理"><X size={19} /></button>
         </div>
-        <p className="manager-copy">上传、排序或移除照片，球面会立即更新。</p>
-        <label className="upload-button"><Upload size={18} /> 添加照片<input type="file" accept="image/*" multiple onChange={(event) => onUpload(event.target.files)} /></label>
+        <p className="manager-copy">上传、排序或移除照片，修改会自动保存到云端。</p>
+        <p className={`storage-status storage-${storageState}`}>{storageState === 'saving' ? '正在保存…' : storageState === 'error' ? '保存失败，请重试' : storageState === 'loading' ? '正在读取…' : '已同步'}</p>
+        <label className="upload-button"><Upload size={18} /> 添加照片<input type="file" accept="image/*" multiple onChange={(event) => { void onUpload(event.target.files); event.currentTarget.value = ''; }} /></label>
         <div className="photo-list">
           {photos.map((photo, index) => (
             <article className="photo-row" key={photo.id}>
@@ -271,8 +317,8 @@ export default function Gallery() {
           ))}
         </div>
         <button className="reset-button" onClick={() => setPhotos(initialPhotos)}><RotateCcw size={15} /> 恢复示例照片</button>
-      </aside>
-      {managing && <button className="manager-scrim" onClick={() => setManaging(false)} aria-label="关闭照片管理" />}
+      </aside>}
+      {isOwner && managing && <button className="manager-scrim" onClick={() => setManaging(false)} aria-label="关闭照片管理" />}
 
       {selected !== null && photos[selected] && createPortal(
         <div className="lightbox" role="dialog" aria-modal="true" aria-labelledby="lightbox-title" aria-describedby="lightbox-note">
@@ -303,9 +349,9 @@ export default function Gallery() {
                     <span>{String(selected + 1).padStart(2, '0')} / {String(photos.length).padStart(2, '0')}</span>
                     <h2>{photos[selected].title}</h2>
                   </div>
-                  <label><span>时间</span><input value={photos[selected].date} onChange={(event) => updateSelectedPhoto({ date: event.target.value })} /></label>
-                  <label><span>当时的事情</span><textarea rows={2} value={photos[selected].story} placeholder="记录当时发生的事情…" onChange={(event) => updateSelectedPhoto({ story: event.target.value })} /></label>
-                  <label><span>感想</span><textarea rows={2} value={photos[selected].note} placeholder="写下这一刻的感受…" onChange={(event) => updateSelectedPhoto({ note: event.target.value })} /></label>
+                  <label><span>时间</span><input value={photos[selected].date} readOnly={!isOwner} onChange={isOwner ? (event) => updateSelectedPhoto({ date: event.target.value }) : undefined} /></label>
+                  <label><span>当时的事情</span><textarea rows={2} value={photos[selected].story} readOnly={!isOwner} placeholder="记录当时发生的事情…" onChange={isOwner ? (event) => updateSelectedPhoto({ story: event.target.value }) : undefined} /></label>
+                  <label><span>感想</span><textarea rows={2} value={photos[selected].note} readOnly={!isOwner} placeholder="写下这一刻的感受…" onChange={isOwner ? (event) => updateSelectedPhoto({ note: event.target.value }) : undefined} /></label>
                 </aside>
               )}
             </>

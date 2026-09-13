@@ -52,6 +52,7 @@ button { color: inherit; }
 .icon-button, .manage-button, .autoplay-toggle { border: 1px solid rgb(255 255 255 / 10%); background: rgb(15 13 24 / 62%); backdrop-filter: blur(15px); cursor: pointer; transition: .2s ease; }
 .icon-button { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; }
 .manage-button { display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 16px; border-radius: 99px; font-size: 14px; }
+.manage-login { color: #d9cbe9; text-decoration: none; }
 .autoplay-toggle { display: flex; align-items: center; gap: 7px; min-height: 40px; padding: 0 8px 0 13px; border-radius: 99px; color: #9b94a5; font-size: 13px; }
 .autoplay-toggle b { min-width: 28px; padding: 4px 7px; border-radius: 99px; color: #7c7487; background: rgb(255 255 255 / 7%); font-size: 11px; font-weight: 500; }
 .autoplay-toggle.is-playing { color: #e2d3f9; border-color: rgb(184 137 255 / 30%); }
@@ -135,6 +136,10 @@ button { color: inherit; }
 .manager-head .eyebrow { margin-bottom: 8px; color: #9275bd; font-size: 9px; }
 .manager h2 { margin: 0; font-family: Georgia, "Songti SC", serif; font-size: 28px; font-weight: 400; }
 .manager-copy { margin: 14px 0 20px; color: #8c8494; font-size: 14px; }
+.storage-status { margin: -11px 0 14px; color: #7e7688; font-size: 12px; }
+.storage-saving { color: #c7a1ff; }
+.storage-error { color: #ff9da8; }
+.storage-saved, .storage-ready { color: #9bcdb3; }
 .upload-button { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; height: 46px; border: 1px dashed rgb(193 153 255 / 35%); border-radius: 12px; color: #d6baff; background: rgb(142 87 225 / 8%); cursor: pointer; }
 .upload-button input { display: none; }
 .photo-list { height: calc(100dvh - 260px); margin-top: 18px; padding-right: 5px; overflow-y: auto; }
@@ -170,6 +175,7 @@ button { color: inherit; }
 .lightbox-details input { height: 34px; padding: 0 10px; }
 .lightbox-details textarea { resize: vertical; min-height: 48px; max-height: 110px; padding: 8px 10px; }
 .lightbox-details input:focus, .lightbox-details textarea:focus { border-color: rgb(194 151 255 / 55%); background: rgb(40 27 57 / 62%); }
+.lightbox-details input[readonly], .lightbox-details textarea[readonly] { border-color: transparent; background: rgb(255 255 255 / 3%); cursor: default; }
 @keyframes details-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes panel-in { from { opacity: 0; transform: translateX(28px); } to { opacity: 1; transform: translateX(0); } }
 .lightbox-next.nav-with-details { right: 410px; }
