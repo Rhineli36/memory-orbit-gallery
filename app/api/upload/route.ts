@@ -1,14 +1,14 @@
 import { env } from 'cloudflare:workers';
 import { getChatGPTUser } from '@/app/chatgpt-auth';
+import { isGalleryOwner } from '@/app/owner';
 
 export const dynamic = 'force-dynamic';
 
-const OWNER_USER_ID = '65dcc69f-6c68-4973-aac5-f9f83d44399c';
 const MAX_FILE_SIZE = 20 * 1024 * 1024;
 
 export async function POST(request: Request) {
   const user = await getChatGPTUser();
-  if (user?.userId !== OWNER_USER_ID) return Response.json({ error: '只有相册主人可以上传' }, { status: 403 });
+  if (!isGalleryOwner(user?.email)) return Response.json({ error: '只有相册主人可以上传' }, { status: 403 });
   if (!env.BUCKET) return Response.json({ error: '照片存储暂时不可用' }, { status: 503 });
 
   try {

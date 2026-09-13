@@ -1,10 +1,10 @@
 import { env } from 'cloudflare:workers';
 import { getChatGPTUser } from '@/app/chatgpt-auth';
+import { isGalleryOwner } from '@/app/owner';
 import type { Photo } from '@/app/photos';
 
 export const dynamic = 'force-dynamic';
 
-const OWNER_USER_ID = '65dcc69f-6c68-4973-aac5-f9f83d44399c';
 const MAX_PHOTOS = 200;
 
 function database(): D1Database {
@@ -14,7 +14,7 @@ function database(): D1Database {
 
 async function ownerOnly() {
   const user = await getChatGPTUser();
-  return user?.userId === OWNER_USER_ID;
+  return isGalleryOwner(user?.email);
 }
 
 function validPhoto(value: unknown): value is Photo {
