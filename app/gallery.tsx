@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent } from 'react';
 import { createPortal, flushSync } from 'react-dom';
 import { ArrowLeft, ChevronLeft, ChevronRight, Globe2, Grid3X3, Images, LogIn, Maximize2, Orbit, Pause, Play, RotateCcw, Settings2, Upload, X } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
@@ -68,6 +68,22 @@ export default function Gallery({ isOwner, signInPath, showSignIn }: GalleryProp
 
   const openPhoto = (index: number) => transitionTo(() => setSelected(index));
   const closePhoto = () => transitionTo(() => setSelected(null));
+  const closeFromMediaGutter = (event: MouseEvent<HTMLDivElement>) => {
+    const image = event.currentTarget.querySelector<HTMLImageElement>('.lightbox-photo');
+    if (!image?.naturalWidth || !image.naturalHeight) return;
+
+    const bounds = event.currentTarget.getBoundingClientRect();
+    const scale = Math.min(bounds.width / image.naturalWidth, bounds.height / image.naturalHeight);
+    const displayedWidth = image.naturalWidth * scale;
+    const displayedHeight = image.naturalHeight * scale;
+    const x = event.clientX - bounds.left;
+    const y = event.clientY - bounds.top;
+    const imageLeft = (bounds.width - displayedWidth) / 2;
+    const imageTop = (bounds.height - displayedHeight) / 2;
+    const clickedImage = x >= imageLeft && x <= imageLeft + displayedWidth && y >= imageTop && y <= imageTop + displayedHeight;
+
+    if (!clickedImage) closePhoto();
+  };
 
   useEffect(() => {
     let active = true;
@@ -330,9 +346,10 @@ export default function Gallery({ isOwner, signInPath, showSignIn }: GalleryProp
                 role="img"
                 aria-label={photos[selected].title}
                 style={{ viewTransitionName: `photo-${selected}` }}
+                onClick={closeFromMediaGutter}
               >
                 <div className="lightbox-backdrop" style={{ backgroundImage: `url("${photos[selected].src}")` }} />
-                <div className="lightbox-photo" aria-hidden="true" style={{ backgroundImage: `url("${photos[selected].src}")` }} />
+                <img className="lightbox-photo" src={photos[selected].src} alt="" aria-hidden="true" draggable={false} />
               </div>
               <div className="lightbox-toolbar">
                 <button className="back-to-sphere" onClick={closePhoto}><ArrowLeft size={18} /> 返回球面</button>
