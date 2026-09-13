@@ -2,22 +2,22 @@
 
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent } from 'react';
 import { createPortal, flushSync } from 'react-dom';
-import { ArrowLeft, ChevronLeft, ChevronRight, Globe2, Grid3X3, Images, LogIn, Maximize2, Orbit, Pause, Play, RotateCcw, Settings2, Upload, X } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight, Globe2, Grid3X3, Images, Maximize2, Orbit, Pause, Play, RotateCcw, Settings2, Upload, X } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { initialPhotos, type Photo } from './photos';
 
 type SphereItem = Photo & { lat: number; lon: number };
-type GalleryProps = { isOwner: boolean; signInPath: string; showSignIn: boolean };
+type GalleryProps = { isOwner: boolean; initialGallery: Photo[] };
 
-export default function Gallery({ isOwner, signInPath, showSignIn }: GalleryProps) {
-  const [photos, setPhotos] = useState<Photo[]>(initialPhotos);
+export default function Gallery({ isOwner, initialGallery }: GalleryProps) {
+  const [photos, setPhotos] = useState<Photo[]>(initialGallery);
   const [selected, setSelected] = useState<number | null>(null);
   const [managing, setManaging] = useState(false);
   const [playing, setPlaying] = useState(true);
   const [detailsVisible, setDetailsVisible] = useState(true);
   const [layoutMode, setLayoutMode] = useState<'orderly' | 'classic' | 'scatter'>('orderly');
-  const [storageReady, setStorageReady] = useState(false);
-  const [storageState, setStorageState] = useState<'loading' | 'ready' | 'saving' | 'saved' | 'error'>('loading');
+  const [storageReady] = useState(true);
+  const [storageState, setStorageState] = useState<'loading' | 'ready' | 'saving' | 'saved' | 'error'>('ready');
   const sphereRef = useRef<HTMLDivElement>(null);
   const drag = useRef({ active: false, moved: false, selectedIndex: -1, x: 0, y: 0, rx: -7, ry: -11, vx: 0, vy: 0 });
 
@@ -84,23 +84,6 @@ export default function Gallery({ isOwner, signInPath, showSignIn }: GalleryProp
 
     if (!clickedImage) closePhoto();
   };
-
-  useEffect(() => {
-    let active = true;
-    fetch('/api/gallery', { cache: 'no-store' })
-      .then(async (response) => {
-        if (!response.ok) throw new Error('load failed');
-        return response.json() as Promise<{ initialized: boolean; photos: Photo[] }>;
-      })
-      .then((data) => {
-        if (!active) return;
-        if (data.initialized) setPhotos(data.photos);
-        setStorageReady(true);
-        setStorageState('ready');
-      })
-      .catch(() => active && setStorageState('error'));
-    return () => { active = false; };
-  }, []);
 
   useEffect(() => {
     if (!isOwner || !storageReady) return;
@@ -236,7 +219,6 @@ export default function Gallery({ isOwner, signInPath, showSignIn }: GalleryProp
             {playing ? <Pause size={15} /> : <Play size={15} />}<span>自动旋转</span><b>{playing ? '开' : '关'}</b>
           </button>
           {isOwner && <button className="manage-button" onClick={() => setManaging(true)}><Settings2 size={17} /> 管理照片</button>}
-          {!isOwner && showSignIn && <a className="manage-button manage-login" href={signInPath} target="_top"><LogIn size={17} /> 管理登录</a>}
         </div>
       </header>
 
