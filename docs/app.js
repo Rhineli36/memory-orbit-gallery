@@ -8,7 +8,6 @@
   const viewerImage = document.getElementById('viewerImage');
   const viewerBg = document.getElementById('viewerBg');
   const details = document.getElementById('details');
-  const title = document.getElementById('photoTitle');
   const date = document.getElementById('photoDate');
   const story = document.getElementById('photoStory');
   const storyRow = document.getElementById('storyRow');
@@ -29,6 +28,7 @@
   let pointerY = 0;
   let current = 0;
   let radius = 360;
+  let currentPoints = [];
   const elements = [];
 
   function pointsFor(layout) {
@@ -57,17 +57,19 @@
 
   function updateRadius() {
     const box = stage.getBoundingClientRect();
-    radius = Math.max(210, Math.min(box.width * .38, box.height * .43, 430));
-    if (innerWidth < 850) radius = Math.max(205, Math.min(box.width * .53, box.height * .33, 300));
+    radius = Math.max(240, Math.min(box.width * .43, box.height * .47, 470));
+    if (innerWidth < 850) radius = Math.max(220, Math.min(box.width * .61, box.height * .35, 315));
     layoutPhotos();
   }
 
   function layoutPhotos() {
     const points = pointsFor(mode);
+    currentPoints = points;
     elements.forEach((el, i) => {
       const p = points[i];
-      const extra = mode === 'cluster' ? 1 + ((i * 17) % 11 - 5) / 48 : 1;
-      el.style.transform = `rotateY(${p.lon}deg) rotateX(${-p.lat}deg) translateZ(${radius * extra}px) rotateX(${p.lat}deg) rotateY(${-p.lon}deg)`;
+      const extra = mode === 'cluster' ? 1.11 + ((i * 17) % 11 - 5) / 70 : 1.04;
+      const scale = mode === 'cluster' ? .78 : mode === 'classic' ? .9 : 1;
+      el.style.transform = `rotateY(${p.lon}deg) rotateX(${-p.lat}deg) translateZ(${radius * extra}px) rotateX(${p.lat}deg) rotateY(${-p.lon}deg) scale(${scale})`;
     });
   }
 
@@ -79,7 +81,9 @@
     const image = document.createElement('img');
     image.src = photo.src;
     image.alt = photo.title || `照片 ${index + 1}`;
-    image.loading = index < 14 ? 'eager' : 'lazy';
+    // The photos move continuously in 3D, so eager loading prevents blank cards
+    // when a previously rear-facing image rotates into view.
+    image.loading = 'eager';
     image.decoding = 'async';
     button.appendChild(image);
     button.addEventListener('click', () => {
@@ -97,7 +101,6 @@
     viewerImage.alt = photo.title || `照片 ${current + 1}`;
     viewerBg.style.backgroundImage = `url("${photo.src}")`;
     counter.textContent = `${String(current + 1).padStart(2, '0')} / ${String(photos.length).padStart(2, '0')}`;
-    title.textContent = photo.title || `照片 ${current + 1}`;
     date.textContent = photo.date || '未记录';
     story.textContent = photo.story || '';
     storyRow.hidden = !photo.story;
@@ -200,6 +203,26 @@
       velocityY *= .94;
     }
     sphere.style.transform = `rotateX(${rotationX}deg) rotateY(${rotationY}deg)`;
+    const rx = rotationX * Math.PI / 180;
+    const ry = rotationY * Math.PI / 180;
+    const cosX = Math.cos(rx);
+    const sinX = Math.sin(rx);
+    const cosY = Math.cos(ry);
+    const sinY = Math.sin(ry);
+    elements.forEach((element, index) => {
+      const point = currentPoints[index];
+      if (!point) return;
+      const lat = point.lat * Math.PI / 180;
+      const lon = point.lon * Math.PI / 180;
+      const x = Math.sin(lon) * Math.cos(lat);
+      const y = Math.sin(lat);
+      const z = Math.cos(lon) * Math.cos(lat);
+      const zAfterY = -x * sinY + z * cosY;
+      const zAfterX = y * sinX + zAfterY * cosX;
+      const visible = zAfterX > -.06;
+      element.style.opacity = visible ? String(Math.min(1, .42 + zAfterX * .7)) : '0';
+      element.style.pointerEvents = visible ? 'auto' : 'none';
+    });
     requestAnimationFrame(animate);
   }
 

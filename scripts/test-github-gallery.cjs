@@ -19,8 +19,15 @@ const path = require('path');
   if (await page.locator('#app').getAttribute('data-mode') !== 'classic') throw new Error('Classic mode failed');
   await page.locator('[data-mode="cluster"]').click();
   if (await page.locator('#app').getAttribute('data-mode') !== 'cluster') throw new Error('Cluster mode failed');
+  if (await page.locator('.mode.is-active').getAttribute('data-mode') !== 'cluster') throw new Error('Active mode styling failed');
+  await page.waitForTimeout(250);
+  if (process.env.SCREENSHOT_PATH) await page.screenshot({ path: process.env.SCREENSHOT_PATH });
 
-  await page.locator('.orbit-photo').nth(3).click({ force: true });
+  await page.locator('.orbit-photo').evaluateAll(elements => {
+    const visible = elements.find(element => Number(getComputedStyle(element).opacity) > .2);
+    if (!visible) throw new Error('No front-facing photo found');
+    visible.click();
+  });
   await page.locator('#viewer.is-open').waitFor();
   const size = await page.locator('#viewerImage').evaluate(el => ({
     naturalWidth: el.naturalWidth,

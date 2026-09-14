@@ -86,7 +86,7 @@ def export() -> None:
         records.append(
             {
                 "src": f"./assets/photos/{destination.name}",
-                "title": Path(name).stem,
+                "title": "",
                 "date": "2026/9/14",
                 "story": "",
                 "note": "刚刚加入这颗影像星球。",
