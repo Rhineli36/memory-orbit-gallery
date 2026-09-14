@@ -85,20 +85,25 @@ export default function Gallery({ isOwner, initialGallery }: GalleryProps) {
     if (!clickedImage) closePhoto();
   };
 
-  useEffect(() => {
-    if (!isOwner || !storageReady) return;
+  const savePhotos = async (nextPhotos: Photo[]) => {
     setStorageState('saving');
-    const timer = window.setTimeout(() => {
-      fetch('/api/gallery', {
+    try {
+      const response = await fetch('/api/memories', {
         method: 'PUT',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ photos }),
-      })
-        .then((response) => {
-          if (!response.ok) throw new Error('save failed');
-          setStorageState('saved');
-        })
-        .catch(() => setStorageState('error'));
+        body: JSON.stringify({ photos: nextPhotos }),
+      });
+      if (!response.ok) throw new Error('save failed');
+      setStorageState('saved');
+    } catch {
+      setStorageState('error');
+    }
+  };
+
+  useEffect(() => {
+    if (!isOwner || !storageReady) return;
+    const timer = window.setTimeout(() => {
+      void savePhotos(photos);
     }, 500);
     return () => window.clearTimeout(timer);
   }, [photos, isOwner, storageReady]);
@@ -299,7 +304,8 @@ export default function Gallery({ isOwner, initialGallery }: GalleryProps) {
           <button className="icon-button" onClick={() => setManaging(false)} aria-label="关闭照片管理"><X size={19} /></button>
         </div>
         <p className="manager-copy">上传、排序或移除照片，修改会自动保存到云端。</p>
-        <p className={`storage-status storage-${storageState}`}>{storageState === 'saving' ? '正在保存…' : storageState === 'error' ? '保存失败，请重试' : storageState === 'loading' ? '正在读取…' : '已同步'}</p>
+        <p className={`storage-status storage-${storageState}`} aria-live="polite">{storageState === 'saving' ? '正在保存…' : storageState === 'error' ? '保存失败，请重试' : storageState === 'loading' ? '正在读取…' : '已同步'}</p>
+        <button className="save-button" onClick={() => void savePhotos(photos)} disabled={storageState === 'saving'}>{storageState === 'saving' ? '正在保存…' : storageState === 'error' ? '重新保存' : '立即保存'}</button>
         <label className="upload-button"><Upload size={18} /> 添加照片<input type="file" accept="image/*" multiple onChange={(event) => { void onUpload(event.target.files); event.currentTarget.value = ''; }} /></label>
         <div className="photo-list">
           {photos.map((photo, index) => (
