@@ -64,12 +64,15 @@
 
   function layoutPhotos() {
     const points = pointsFor(mode);
-    currentPoints = points;
+    currentPoints = points.map((point, index) => ({
+      ...point,
+      distance: mode === 'cluster' ? 1.11 + ((index * 17) % 11 - 5) / 70 : 1.04,
+      cardScale: mode === 'cluster' ? .78 : mode === 'classic' ? .9 : 1,
+    }));
     elements.forEach((el, i) => {
-      const p = points[i];
-      const extra = mode === 'cluster' ? 1.11 + ((i * 17) % 11 - 5) / 70 : 1.04;
-      const scale = mode === 'cluster' ? .78 : mode === 'classic' ? .9 : 1;
-      el.style.transform = `rotateY(${p.lon}deg) rotateX(${-p.lat}deg) translateZ(${radius * extra}px) rotateX(${p.lat}deg) rotateY(${-p.lon}deg) scale(${scale})`;
+      // Positions are recalculated every frame. Cards remain screen-facing
+      // instead of rotating edge-on with the sphere.
+      el.style.transform = 'translate3d(0, 0, 0)';
     });
   }
 
@@ -202,7 +205,7 @@
       velocityX *= .94;
       velocityY *= .94;
     }
-    sphere.style.transform = `rotateX(${rotationX}deg) rotateY(${rotationY}deg)`;
+    sphere.style.transform = 'none';
     const rx = rotationX * Math.PI / 180;
     const ry = rotationY * Math.PI / 180;
     const cosX = Math.cos(rx);
@@ -214,14 +217,21 @@
       if (!point) return;
       const lat = point.lat * Math.PI / 180;
       const lon = point.lon * Math.PI / 180;
-      const x = Math.sin(lon) * Math.cos(lat);
-      const y = Math.sin(lat);
-      const z = Math.cos(lon) * Math.cos(lat);
+      const pointRadius = radius * point.distance;
+      const x = Math.sin(lon) * Math.cos(lat) * pointRadius;
+      const y = Math.sin(lat) * pointRadius;
+      const z = Math.cos(lon) * Math.cos(lat) * pointRadius;
       const zAfterY = -x * sinY + z * cosY;
+      const xAfterY = x * cosY + z * sinY;
+      const yAfterX = y * cosX - zAfterY * sinX;
       const zAfterX = y * sinX + zAfterY * cosX;
-      const visible = zAfterX > -.06;
-      element.style.opacity = visible ? String(Math.min(1, .42 + zAfterX * .7)) : '0';
+      const depth = zAfterX / pointRadius;
+      const visible = depth > -.08;
+      const depthScale = point.cardScale * (.82 + Math.max(0, depth) * .18);
+      element.style.transform = `translate3d(${xAfterY}px, ${yAfterX}px, ${zAfterX * .3}px) scale(${depthScale})`;
+      element.style.opacity = visible ? String(Math.min(1, .4 + depth * .72)) : '0';
       element.style.pointerEvents = visible ? 'auto' : 'none';
+      element.style.zIndex = String(Math.round((depth + 1) * 100));
     });
     requestAnimationFrame(animate);
   }

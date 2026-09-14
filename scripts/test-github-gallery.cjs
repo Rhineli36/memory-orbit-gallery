@@ -21,6 +21,10 @@ const path = require('path');
   if (await page.locator('#app').getAttribute('data-mode') !== 'cluster') throw new Error('Cluster mode failed');
   if (await page.locator('.mode.is-active').getAttribute('data-mode') !== 'cluster') throw new Error('Active mode styling failed');
   await page.waitForTimeout(250);
+  const visibleCardWidths = await page.locator('.orbit-photo').evaluateAll(elements => elements
+    .filter(element => Number(getComputedStyle(element).opacity) > .2)
+    .map(element => element.getBoundingClientRect().width));
+  if (!visibleCardWidths.length || Math.min(...visibleCardWidths) < 45) throw new Error('A photo rotated edge-on');
   if (process.env.SCREENSHOT_PATH) await page.screenshot({ path: process.env.SCREENSHOT_PATH });
 
   await page.locator('.orbit-photo').evaluateAll(elements => {
