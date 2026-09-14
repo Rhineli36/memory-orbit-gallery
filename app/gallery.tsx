@@ -16,8 +16,9 @@ export default function Gallery({ isOwner, initialGallery }: GalleryProps) {
   const [playing, setPlaying] = useState(true);
   const [detailsVisible, setDetailsVisible] = useState(true);
   const [layoutMode, setLayoutMode] = useState<'orderly' | 'classic' | 'scatter'>('orderly');
-  const [storageReady] = useState(true);
-  const [storageState, setStorageState] = useState<'loading' | 'ready' | 'saving' | 'saved' | 'error'>('ready');
+  const [storageReady, setStorageReady] = useState(!isOwner);
+  const [storageState, setStorageState] = useState<'loading' | 'ready' | 'saving' | 'saved' | 'error'>(isOwner ? 'loading' : 'ready');
+  const lastSavedPhotos = useRef(JSON.stringify(initialGallery));
   const sphereRef = useRef<HTMLDivElement>(null);
   const drag = useRef({ active: false, moved: false, selectedIndex: -1, x: 0, y: 0, rx: -7, ry: -11, vx: 0, vy: 0 });
 
@@ -94,6 +95,7 @@ export default function Gallery({ isOwner, initialGallery }: GalleryProps) {
         body: JSON.stringify({ photos: nextPhotos }),
       });
       if (!response.ok) throw new Error('save failed');
+      lastSavedPhotos.current = JSON.stringify(nextPhotos);
       setStorageState('saved');
     } catch {
       setStorageState('error');
@@ -101,7 +103,40 @@ export default function Gallery({ isOwner, initialGallery }: GalleryProps) {
   };
 
   useEffect(() => {
+    if (!isOwner) return;
+    const controller = new AbortController();
+    setStorageState('loading');
+
+    fetch('/api/recover', { method: 'POST', signal: controller.signal })
+      .then(async (response) => {
+        if (!response.ok) throw new Error('recover failed');
+        return response.json() as Promise<{ photos?: Photo[] }>;
+      })
+      .then((data) => {
+        if (Array.isArray(data.photos) && data.photos.length > 0) {
+          setPhotos(data.photos);
+          lastSavedPhotos.current = JSON.stringify(data.photos);
+          setStorageState('saved');
+        } else {
+          setStorageState('ready');
+        }
+      })
+      .catch((error: unknown) => {
+        if (!controller.signal.aborted) {
+          console.error('gallery recovery request failed', error);
+          setStorageState('error');
+        }
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setStorageReady(true);
+      });
+
+    return () => controller.abort();
+  }, [isOwner]);
+
+  useEffect(() => {
     if (!isOwner || !storageReady) return;
+    if (JSON.stringify(photos) === lastSavedPhotos.current) return;
     const timer = window.setTimeout(() => {
       void savePhotos(photos);
     }, 500);
@@ -191,7 +226,10 @@ export default function Gallery({ isOwner, initialGallery }: GalleryProps) {
         const data = await response.json() as { photo: Photo };
         additions.push(data.photo);
       }
-      setPhotos((current) => [...current, ...additions]);
+      setPhotos((current) => {
+        const retained = current.some((photo) => photo.src.startsWith('/api/photo/')) ? current : [];
+        return [...retained, ...additions];
+      });
     } catch {
       setStorageState('error');
     }
