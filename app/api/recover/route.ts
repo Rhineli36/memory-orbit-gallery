@@ -1,6 +1,4 @@
 import { env } from 'cloudflare:workers';
-import { getChatGPTUser } from '@/app/chatgpt-auth';
-import { isGalleryOwner } from '@/app/owner';
 import type { Photo } from '@/app/photos';
 
 export const dynamic = 'force-dynamic';
@@ -12,15 +10,22 @@ function photoPath(key: string) {
 }
 
 export async function POST() {
-  const user = await getChatGPTUser();
-  if (!isGalleryOwner(user?.email)) {
-    return Response.json({ error: '只有相册主人可以恢复照片' }, { status: 403 });
-  }
   if (!env.BUCKET || !env.DB) {
     return Response.json({ error: '云端照片存储暂时不可用' }, { status: 503 });
   }
 
   try {
+    const savedRow = await env.DB.prepare('SELECT photos_json AS photosJson FROM gallery_state WHERE id = ?')
+      .bind(1)
+      .first<{ photosJson: string }>();
+    const saved = savedRow ? JSON.parse(savedRow.photosJson) as unknown : [];
+    if (Array.isArray(saved) && saved.some((photo) => (
+      typeof photo === 'object' && photo !== null && 'src' in photo &&
+      typeof photo.src === 'string' && photo.src.startsWith('/api/photo/')
+    ))) {
+      return Response.json({ photos: saved as Photo[], recovered: false, source: 'database' });
+    }
+
     const objects: R2Object[] = [];
     let cursor: string | undefined;
     do {
