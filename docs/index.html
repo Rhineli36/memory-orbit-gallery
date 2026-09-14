@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#07050e">
+  <meta name="description" content="光影轨迹 · 私人影像收藏">
+  <title>光影轨迹 · Memory Orbit</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="app" id="app">
+    <header class="topbar">
+      <a class="brand" href="./" aria-label="返回相册首页">
+        <span class="brand-mark">◫</span>
+        <span><b>光影轨迹</b><small>MEMORY ORBIT</small></span>
+      </a>
+      <div class="controls">
+        <div class="segmented" role="group" aria-label="排列方式">
+          <button class="mode is-active" data-mode="rows">▦ <span>横排</span></button>
+          <button class="mode" data-mode="classic">◉ <span>经典</span></button>
+          <button class="mode" data-mode="cluster">✧ <span>星群</span></button>
+        </div>
+        <button class="rotate-toggle is-active" id="rotateToggle" aria-pressed="true">
+          <span>Ⅱ</span><span>自动旋转</span><i>开</i>
+        </button>
+      </div>
+    </header>
+
+    <main class="hero">
+      <section class="intro">
+        <p class="eyebrow">私人影像收藏</p>
+        <h1>让记忆，<br><em>沿轨迹流动</em></h1>
+        <p class="lede">拖动探索影像星球，滚轮也能改变方向。<br>轻点任意照片，进入全屏细节。</p>
+      </section>
+
+      <section class="orbit-stage" id="orbitStage" aria-label="3D 影像星球">
+        <div class="orbit-haze"></div>
+        <div class="guide guide-a"></div>
+        <div class="guide guide-b"></div>
+        <div class="photo-sphere" id="photoSphere"></div>
+        <div class="cosmic-core" id="cosmicCore" aria-hidden="true">
+          <i></i><i></i><i></i><i></i><i></i><i></i>
+        </div>
+        <div class="drag-hint"><span>↕</span> 拖动球面 · 滚轮漫游</div>
+      </section>
+    </main>
+  </div>
+
+  <section class="viewer" id="viewer" aria-hidden="true" aria-label="照片查看器">
+    <div class="viewer-bg" id="viewerBg"></div>
+    <div class="viewer-toolbar">
+      <button class="pill" id="closeViewer">← 返回球面</button>
+      <button class="pill" id="detailToggle" aria-pressed="true">隐藏文字</button>
+    </div>
+    <button class="nav prev" id="prevPhoto" aria-label="上一张">‹</button>
+    <div class="image-area" id="imageArea">
+      <img id="viewerImage" alt="">
+    </div>
+    <button class="nav next" id="nextPhoto" aria-label="下一张">›</button>
+    <aside class="details" id="details">
+      <p class="counter" id="counter"></p>
+      <h2 id="photoTitle"></h2>
+      <dl>
+        <div><dt>时间</dt><dd id="photoDate"></dd></div>
+        <div id="storyRow"><dt>当时的事情</dt><dd id="photoStory"></dd></div>
+        <div><dt>感想</dt><dd id="photoNote"></dd></div>
+      </dl>
+    </aside>
+  </section>
+
+  <script src="./gallery-data.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
