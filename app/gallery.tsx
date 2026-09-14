@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent } from 'react';
 import { createPortal, flushSync } from 'react-dom';
-import { ArrowLeft, ChevronLeft, ChevronRight, Globe2, Grid3X3, Images, Maximize2, Orbit, Pause, Play, RotateCcw, Settings2, Upload, X } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight, Globe2, Grid3X3, ImageOff, Images, Maximize2, Orbit, Pause, Pencil, Play, RotateCcw, Settings2, Trash2, Upload, X } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { initialPhotos, type Photo } from './photos';
 
@@ -213,6 +213,28 @@ export default function Gallery({ isOwner, initialGallery }: GalleryProps) {
     });
   };
 
+  const editPhoto = (index: number) => {
+    setManaging(false);
+    setDetailsVisible(true);
+    openPhoto(index);
+  };
+
+  const removePhoto = async (index: number) => {
+    const photo = photos[index];
+    if (!photo || !window.confirm(`确定删除“${photo.title || '这张照片'}”吗？删除后无法恢复。`)) return;
+
+    setStorageState('saving');
+    try {
+      if (photo.src.startsWith('/api/photo/')) {
+        const response = await fetch(photo.src, { method: 'DELETE' });
+        if (!response.ok) throw new Error('delete failed');
+      }
+      setPhotos((current) => current.filter((item) => item.id !== photo.id));
+    } catch {
+      setStorageState('error');
+    }
+  };
+
   const onUpload = async (files: FileList | null) => {
     if (!files?.length) return;
     setStorageState('saving');
@@ -348,12 +370,16 @@ export default function Gallery({ isOwner, initialGallery }: GalleryProps) {
         <div className="photo-list">
           {photos.map((photo, index) => (
             <article className="photo-row" key={photo.id}>
-              <img src={photo.src} alt="" />
-              <div><strong>{photo.title}</strong><small>{String(index + 1).padStart(2, '0')} / {String(photos.length).padStart(2, '0')}</small></div>
+              <div className="photo-thumb">
+                <ImageOff size={19} aria-hidden="true" />
+                <img src={photo.src} alt="" onError={(event) => event.currentTarget.classList.add('is-broken')} />
+              </div>
+              <div className="photo-row-copy"><strong title={photo.title}>{photo.title || '未命名照片'}</strong><small>{String(index + 1).padStart(2, '0')} / {String(photos.length).padStart(2, '0')}</small></div>
               <div className="row-actions">
-                <button onClick={() => movePhoto(index, -1)} aria-label="向前移动"><ChevronLeft size={16} /></button>
-                <button onClick={() => movePhoto(index, 1)} aria-label="向后移动"><ChevronRight size={16} /></button>
-                <button onClick={() => setPhotos((current) => current.filter((_, i) => i !== index))} aria-label="移除照片"><X size={16} /></button>
+                <button onClick={() => movePhoto(index, -1)} aria-label="向前移动" title="向前移动"><ChevronLeft size={16} /></button>
+                <button onClick={() => movePhoto(index, 1)} aria-label="向后移动" title="向后移动"><ChevronRight size={16} /></button>
+                <button onClick={() => editPhoto(index)} aria-label="编辑照片资料" title="编辑照片资料"><Pencil size={15} /></button>
+                <button className="delete-photo" onClick={() => void removePhoto(index)} aria-label="永久删除照片" title="永久删除照片"><Trash2 size={15} /></button>
               </div>
             </article>
           ))}
@@ -390,7 +416,9 @@ export default function Gallery({ isOwner, initialGallery }: GalleryProps) {
                 <aside className="lightbox-details">
                   <div className="details-heading">
                     <span>{String(selected + 1).padStart(2, '0')} / {String(photos.length).padStart(2, '0')}</span>
-                    <h2>{photos[selected].title}</h2>
+                    {isOwner ? (
+                      <label className="title-editor"><span>标题</span><input value={photos[selected].title} placeholder="给照片起个名字" onChange={(event) => updateSelectedPhoto({ title: event.target.value })} /></label>
+                    ) : <h2>{photos[selected].title}</h2>}
                   </div>
                   <label><span>时间</span><input value={photos[selected].date} readOnly={!isOwner} onChange={isOwner ? (event) => updateSelectedPhoto({ date: event.target.value }) : undefined} /></label>
                   <label><span>当时的事情</span><textarea rows={2} value={photos[selected].story} readOnly={!isOwner} placeholder="记录当时发生的事情…" onChange={isOwner ? (event) => updateSelectedPhoto({ story: event.target.value }) : undefined} /></label>
